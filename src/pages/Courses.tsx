@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -24,17 +25,209 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Label } from "@/components/ui/label";
 import ClassGradeSelect from '@/components/shared/ClassGradeSelect';
-import { courses } from '@/data/mockData';
-import { Search, Filter } from 'lucide-react';
+import { courses, students, studentProgressData } from '@/data/mockData';
+import { Search, Filter, Plus, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
+import { Course } from '@/types';
 
 const Courses = () => {
   const [selectedGrade, setSelectedGrade] = useState<string>('all');
   const [activeTab, setActiveTab] = useState('all');
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
+  const [newCourse, setNewCourse] = useState({
+    title: '',
+    description: '',
+    grade: '',
+    subject: '',
+    duration: '',
+    level: 'Beginner' as 'Beginner' | 'Intermediate' | 'Advanced',
+  });
 
   const filteredCourses = selectedGrade === 'all' 
     ? courses 
     : courses.filter(course => course.grade === selectedGrade);
+
+  const handleCourseClick = (course: Course) => {
+    setSelectedCourse(course);
+  };
+
+  const handleBackToList = () => {
+    setSelectedCourse(null);
+  };
+
+  const handleAddCourse = () => {
+    // In a real app, this would add the course to the database
+    // Here we're just closing the dialog
+    setIsAddCourseOpen(false);
+    setNewCourse({
+      title: '',
+      description: '',
+      grade: '',
+      subject: '',
+      duration: '',
+      level: 'Beginner',
+    });
+    // We would add the course to the courses array in a real application
+  };
+
+  // Filter students for the selected course based on their class
+  const getStudentsForCourse = (course: Course) => {
+    // Get all students in the class matching the course grade
+    const classStudents = students.filter(student => student.class === course.grade);
+    
+    return classStudents.map(student => {
+      // Find progress data for this student and course
+      const progress = studentProgressData.find(
+        p => p.studentId === student.id && p.courseId === course.id
+      );
+      
+      return {
+        ...student,
+        progress: progress?.progress || 0,
+        completed: (progress?.progress || 0) >= 100,
+        grade: progress?.grade || null
+      };
+    });
+  };
+
+  if (selectedCourse) {
+    const courseStudents = getStudentsForCourse(selectedCourse);
+    
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="sm" onClick={handleBackToList}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Courses
+          </Button>
+          <h2 className="text-3xl font-bold tracking-tight">{selectedCourse.title}</h2>
+        </div>
+        
+        <div className="flex flex-col md:flex-row gap-6">
+          <Card className="md:w-1/3">
+            <CardHeader>
+              <CardTitle>Course Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-medium">Description</h4>
+                <p className="text-muted-foreground">{selectedCourse.description}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-medium">Grade</h4>
+                  <p className="text-muted-foreground">{selectedCourse.grade}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium">Subject</h4>
+                  <p className="text-muted-foreground">{selectedCourse.subject}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium">Duration</h4>
+                  <p className="text-muted-foreground">{selectedCourse.duration} weeks</p>
+                </div>
+                <div>
+                  <h4 className="font-medium">Level</h4>
+                  <p className="text-muted-foreground">{selectedCourse.level}</p>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium">Teacher</h4>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="h-8 w-8 rounded-full overflow-hidden">
+                    <img
+                      src="/lovable-uploads/341f90a3-f11d-402e-b752-1c7c6e121746.png"
+                      alt={selectedCourse.teacher.name}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                  <span>{selectedCourse.teacher.name}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="flex-1">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Student Progress</CardTitle>
+              <div className="flex items-center gap-2 text-sm">
+                <Badge variant="outline" className="bg-green-50 text-green-700">
+                  <CheckCircle className="w-3.5 h-3.5 mr-1" />
+                  {courseStudents.filter(s => s.completed).length} Completed
+                </Badge>
+                <Badge variant="outline" className="bg-amber-50 text-amber-700">
+                  <XCircle className="w-3.5 h-3.5 mr-1" />
+                  {courseStudents.filter(s => !s.completed).length} Pending
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Section</TableHead>
+                    <TableHead>Progress</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Grade</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {courseStudents.length > 0 ? (
+                    courseStudents.map((student) => (
+                      <TableRow key={student.id}>
+                        <TableCell className="font-medium">{student.name}</TableCell>
+                        <TableCell>{student.section}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Progress value={student.progress} className="h-2 w-24" />
+                            <span className="text-sm">{student.progress}%</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {student.completed ? (
+                            <Badge variant="outline" className="bg-green-50 text-green-700">Completed</Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-amber-50 text-amber-700">Pending</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>{student.grade || '-'}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                        No students found for this grade level.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -45,9 +238,120 @@ const Courses = () => {
             Discover and enroll in a wide range of educational content
           </p>
         </div>
-        <Button>
-          <span>View Curriculum</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button>
+            <span>View Curriculum</span>
+          </Button>
+          <Dialog open={isAddCourseOpen} onOpenChange={setIsAddCourseOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Course
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[525px]">
+              <DialogHeader>
+                <DialogTitle>Add New Course</DialogTitle>
+                <DialogDescription>
+                  Fill in the details to create a new course for students.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="title" className="text-right">
+                    Title
+                  </Label>
+                  <Input
+                    id="title"
+                    value={newCourse.title}
+                    onChange={(e) => setNewCourse({...newCourse, title: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="description" className="text-right">
+                    Description
+                  </Label>
+                  <Input
+                    id="description"
+                    value={newCourse.description}
+                    onChange={(e) => setNewCourse({...newCourse, description: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="grade" className="text-right">
+                    Grade
+                  </Label>
+                  <Select
+                    value={newCourse.grade}
+                    onValueChange={(value) => setNewCourse({...newCourse, grade: value})}
+                  >
+                    <SelectTrigger id="grade" className="col-span-3">
+                      <SelectValue placeholder="Select grade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 12 }, (_, i) => String(i + 1)).map((grade) => (
+                        <SelectItem key={grade} value={grade}>
+                          Grade {grade}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="subject" className="text-right">
+                    Subject
+                  </Label>
+                  <Input
+                    id="subject"
+                    value={newCourse.subject}
+                    onChange={(e) => setNewCourse({...newCourse, subject: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="duration" className="text-right">
+                    Duration (weeks)
+                  </Label>
+                  <Input
+                    id="duration"
+                    value={newCourse.duration}
+                    onChange={(e) => setNewCourse({...newCourse, duration: e.target.value})}
+                    type="number"
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="level" className="text-right">
+                    Level
+                  </Label>
+                  <Select
+                    value={newCourse.level}
+                    onValueChange={(value) => setNewCourse({...newCourse, level: value as 'Beginner' | 'Intermediate' | 'Advanced'})}
+                  >
+                    <SelectTrigger id="level" className="col-span-3">
+                      <SelectValue placeholder="Select level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Beginner">Beginner</SelectItem>
+                      <SelectItem value="Intermediate">Intermediate</SelectItem>
+                      <SelectItem value="Advanced">Advanced</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsAddCourseOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleAddCourse}>
+                  Create Course
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
@@ -95,7 +399,11 @@ const Courses = () => {
         <TabsContent value="all" className="mt-0">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {filteredCourses.map((course) => (
-              <Card key={course.id} className="overflow-hidden flex flex-col">
+              <Card 
+                key={course.id} 
+                className="overflow-hidden flex flex-col cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => handleCourseClick(course)}
+              >
                 <div className="aspect-video relative bg-muted">
                   <Badge
                     className="absolute top-2 right-2 z-10"
@@ -145,6 +453,9 @@ const Courses = () => {
                   <Button 
                     className="w-full" 
                     variant={course.progress > 0 ? "default" : "outline"}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent card click from triggering
+                    }}
                   >
                     {course.progress > 0 ? "Continue Learning" : "Enroll Now"}
                   </Button>
