@@ -13,6 +13,11 @@ import Approvals from "./pages/Approvals";
 import StudentManagement from "./pages/StudentManagement";
 import ProgressTracking from "./pages/ProgressTracking";
 import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
+import StudentDashboard from "./pages/StudentDashboard";
+import TeacherDashboard from "./pages/TeacherDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
+import SuperadminDashboard from "./pages/SuperadminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +28,32 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Authentication routes */}
+          <Route path="/login" element={<Login />} />
+          
+          {/* Role-specific dashboard routes */}
+          <Route path="/student-dashboard" element={
+            <MainLayout>
+              <StudentDashboard />
+            </MainLayout>
+          } />
+          <Route path="/teacher-dashboard" element={
+            <MainLayout>
+              <TeacherDashboard />
+            </MainLayout>
+          } />
+          <Route path="/admin-dashboard" element={
+            <MainLayout>
+              <AdminDashboard />
+            </MainLayout>
+          } />
+          <Route path="/superadmin-dashboard" element={
+            <MainLayout>
+              <SuperadminDashboard />
+            </MainLayout>
+          } />
+          
+          {/* Admin layout routes */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/users" element={<UserManagement />} />
@@ -32,6 +63,7 @@ const App = () => (
             <Route path="/student-management" element={<StudentManagement />} />
             <Route path="/progress" element={<ProgressTracking />} />
           </Route>
+          
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

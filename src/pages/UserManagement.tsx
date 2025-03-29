@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -114,7 +113,7 @@ const UserManagement = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={teacher.isActive ? "success" : "destructive"}>
+                        <Badge variant="secondary">
                           {teacher.isActive ? 'Active' : 'Inactive'}
                         </Badge>
                       </TableCell>
@@ -179,7 +178,7 @@ const UserManagement = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={student.isActive ? "success" : "destructive"}>
+                        <Badge variant="secondary">
                           {student.isActive ? 'Active' : 'Inactive'}
                         </Badge>
                       </TableCell>

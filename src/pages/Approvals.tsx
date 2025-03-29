@@ -1,229 +1,190 @@
-
-import React, { useState } from 'react';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
-} from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { 
-  CheckCircle, 
-  XCircle, 
-  Eye, 
-  FileText, 
-  Download 
-} from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { studyMaterials } from '@/data/mockData';
+import React, { useState, useEffect } from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { StudyMaterial } from '@/types';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { MoreVertical, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { Badge } from "@/components/ui/badge"
+import { toast } from "@/hooks/use-toast"
 
 const Approvals = () => {
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [selectedMaterial, setSelectedMaterial] = useState<any>(null);
+  const [approvals, setApprovals] = useState<StudyMaterial[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    // Mock data for study materials
+    const mockStudyMaterials: StudyMaterial[] = [
+      {
+        id: '1',
+        title: 'Introduction to Algebra',
+        type: 'Mathematics',
+        subject: 'Algebra',
+        grade: '9',
+        submittedBy: 'John Doe',
+        submittedOn: '2023-10-01',
+        status: 'Pending',
+      },
+      {
+        id: '2',
+        title: 'Organic Chemistry Basics',
+        type: 'Chemistry',
+        subject: 'Chemistry',
+        grade: '10',
+        submittedBy: 'Jane Smith',
+        submittedOn: '2023-09-25',
+        status: 'Pending',
+      },
+      {
+        id: '3',
+        title: 'Advanced Algorithms',
+        type: 'Computer Science',
+        subject: 'Algorithms',
+        grade: '11',
+        submittedBy: 'Alice Johnson',
+        submittedOn: '2023-09-20',
+        status: 'Pending',
+      },
+      {
+        id: '4',
+        title: 'The Great Gatsby Analysis',
+        type: 'Literature',
+        subject: 'English',
+        grade: '12',
+        submittedBy: 'Bob Williams',
+        submittedOn: '2023-09-15',
+        status: 'Pending',
+      },
+      {
+        id: '5',
+        title: 'Quantum Physics',
+        type: 'Physics',
+        subject: 'Physics',
+        grade: '12',
+        submittedBy: 'Charlie Brown',
+        submittedOn: '2023-09-10',
+        status: 'Pending',
+      },
+    ];
+
+    setApprovals(mockStudyMaterials);
+  }, []);
+
+  const handleApprove = (id: string) => {
+    setApprovals(approvals.map(item =>
+      item.id === id ? { ...item, status: 'Approved' } : item
+    ));
+    toast({
+      title: "Study Material Approved",
+      description: "The study material has been approved successfully.",
+    })
+  };
+
+  const handleReject = (id: string) => {
+    setApprovals(approvals.map(item =>
+      item.id === id ? { ...item, status: 'Rejected' } : item
+    ));
+    toast({
+      title: "Study Material Rejected",
+      description: "The study material has been rejected.",
+    })
+  };
+
+  const filteredApprovals = approvals.filter(approval =>
+    approval.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Approvals</h2>
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold">Study Material Approvals</h1>
+        <Input
+          type="search"
+          placeholder="Search by title..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </div>
-
-      <Tabs defaultValue="pending">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="approved">Approved</TabsTrigger>
-          <TabsTrigger value="rejected">Rejected</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="pending">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Pending Approvals</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Subject</TableHead>
-                    <TableHead>Grade</TableHead>
-                    <TableHead>Submitted By</TableHead>
-                    <TableHead>Submitted On</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {studyMaterials.map((material) => (
-                    <TableRow key={material.id}>
-                      <TableCell className="font-medium">{material.title}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{material.type}</Badge>
-                      </TableCell>
-                      <TableCell>{material.subject}</TableCell>
-                      <TableCell>{material.grade}</TableCell>
-                      <TableCell>{material.submittedBy}</TableCell>
-                      <TableCell>{material.submittedOn}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="ghost"
-                            onClick={() => {
-                              setSelectedMaterial(material);
-                              setPreviewOpen(true);
-                            }}
-                          >
-                            <Eye className="h-4 w-4 text-blue-500" />
-                          </Button>
-                          <Button size="sm" variant="ghost">
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                          </Button>
-                          <Button size="sm" variant="ghost">
-                            <XCircle className="h-4 w-4 text-red-500" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="approved">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Approved Materials</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12">
-                <FileText className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-                <h3 className="text-lg font-medium mb-2">No approved materials yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Approved materials will appear here. Review pending materials to approve them.
-                </p>
-                <Button variant="outline" onClick={() => document.querySelector('[value="pending"]')?.click()}>
-                  View Pending Materials
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="rejected">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Rejected Materials</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12">
-                <FileText className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-                <h3 className="text-lg font-medium mb-2">No rejected materials yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Rejected materials will appear here. Review pending materials to reject them if needed.
-                </p>
-                <Button variant="outline" onClick={() => document.querySelector('[value="pending"]')?.click()}>
-                  View Pending Materials
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Preview Dialog */}
-      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="sm:max-w-[700px]">
-          <DialogHeader>
-            <DialogTitle>Preview Material</DialogTitle>
-          </DialogHeader>
-          
-          {selectedMaterial && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium">Title</p>
-                  <p>{selectedMaterial.title}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Type</p>
-                  <Badge variant="outline">{selectedMaterial.type}</Badge>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium">Subject</p>
-                  <p>{selectedMaterial.subject}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Grade</p>
-                  <p>Grade {selectedMaterial.grade}</p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium">Submitted By</p>
-                  <p>{selectedMaterial.submittedBy}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Submitted On</p>
-                  <p>{selectedMaterial.submittedOn}</p>
-                </div>
-              </div>
-              
-              <div className="border rounded-md p-4 bg-gray-50">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-medium">Document Preview</h3>
-                  <Button variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Download
-                  </Button>
-                </div>
-                
-                <div className="h-64 flex items-center justify-center border rounded bg-white">
-                  <div className="text-center p-6">
-                    <FileText className="h-10 w-10 mx-auto text-gray-300 mb-4" />
-                    <p className="text-muted-foreground">
-                      Preview not available. Please download the document to view its contents.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setPreviewOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive">
-              Reject
-            </Button>
-            <Button>
-              Approve
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Subject</TableHead>
+              <TableHead>Grade</TableHead>
+              <TableHead>Submitted By</TableHead>
+              <TableHead>Submitted On</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredApprovals.map((item) => (
+              <TableRow key={item.id}>
+                <TableCell>{item.title}</TableCell>
+                <TableCell>{item.type}</TableCell>
+                <TableCell>{item.subject}</TableCell>
+                <TableCell>{item.grade}</TableCell>
+                <TableCell>{item.submittedBy}</TableCell>
+                <TableCell>{item.submittedOn}</TableCell>
+                <TableCell>
+                  {item.status === 'Pending' && (
+                    <Badge variant="secondary">Pending</Badge>
+                  )}
+                  {item.status === 'Approved' && (
+                    <Badge variant="success">Approved</Badge>
+                  )}
+                  {item.status === 'Rejected' && (
+                    <Badge variant="destructive">Rejected</Badge>
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem
+                        onClick={() => handleApprove(item.id)}
+                      >
+                        <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleReject(item.id)}
+                      >
+                        <XCircle className="mr-2 h-4 w-4" /> Reject
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem>
+                        <FileText className="mr-2 h-4 w-4" /> View Details
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 };

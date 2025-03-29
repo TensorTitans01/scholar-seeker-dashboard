@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Card, 
@@ -27,7 +26,9 @@ const ContentReview = () => {
             <p className="text-muted-foreground mb-4">
               All study materials have been reviewed. Check the Approvals section for pending approvals.
             </p>
-            <Button href="/approvals">Go to Approvals</Button>
+            <Button asChild>
+              <a href="/approvals">Go to Approvals</a>
+            </Button>
           </div>
         </CardContent>
       </Card>
