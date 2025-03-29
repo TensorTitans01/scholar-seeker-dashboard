@@ -14,10 +14,12 @@ import StudentManagement from "./pages/StudentManagement";
 import ProgressTracking from "./pages/ProgressTracking";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
+import Index from "./pages/Index";
 import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import SuperadminDashboard from "./pages/SuperadminDashboard";
+import ContentReview from "./pages/ContentReview";
 
 const queryClient = new QueryClient();
 
@@ -28,41 +30,25 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          {/* Authentication routes */}
+          {/* Root and Authentication routes */}
+          <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           
           {/* Role-specific dashboard routes */}
-          <Route path="/student-dashboard" element={
-            <MainLayout>
-              <StudentDashboard />
-            </MainLayout>
-          } />
-          <Route path="/teacher-dashboard" element={
-            <MainLayout>
-              <TeacherDashboard />
-            </MainLayout>
-          } />
-          <Route path="/admin-dashboard" element={
-            <MainLayout>
-              <AdminDashboard />
-            </MainLayout>
-          } />
-          <Route path="/superadmin-dashboard" element={
-            <MainLayout>
-              <SuperadminDashboard />
-            </MainLayout>
-          } />
+          <Route path="/student-dashboard" element={<MainLayout><StudentDashboard /></MainLayout>} />
+          <Route path="/teacher-dashboard" element={<MainLayout><TeacherDashboard /></MainLayout>} />
+          <Route path="/admin-dashboard" element={<MainLayout><AdminDashboard /></MainLayout>} />
+          <Route path="/superadmin-dashboard" element={<MainLayout><SuperadminDashboard /></MainLayout>} />
           
           {/* Admin layout routes */}
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/users" element={<UserManagement />} />
-            <Route path="/classroom" element={<Classroom />} />
-            <Route path="/courses" element={<Courses />} />
-            <Route path="/approvals" element={<Approvals />} />
-            <Route path="/student-management" element={<StudentManagement />} />
-            <Route path="/progress" element={<ProgressTracking />} />
-          </Route>
+          <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
+          <Route path="/users" element={<MainLayout><UserManagement /></MainLayout>} />
+          <Route path="/classroom" element={<MainLayout><Classroom /></MainLayout>} />
+          <Route path="/courses" element={<MainLayout><Courses /></MainLayout>} />
+          <Route path="/approvals" element={<MainLayout><Approvals /></MainLayout>} />
+          <Route path="/student-management" element={<MainLayout><StudentManagement /></MainLayout>} />
+          <Route path="/progress" element={<MainLayout><ProgressTracking /></MainLayout>} />
+          <Route path="/content-review" element={<MainLayout><ContentReview /></MainLayout>} />
           
           <Route path="*" element={<NotFound />} />
         </Routes>
