@@ -1,14 +1,11 @@
 
-import React, { useState, ReactNode } from 'react';
+import React, { useState } from 'react';
+import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import { useLocation } from 'react-router-dom';
 
-interface MainLayoutProps {
-  children: ReactNode;
-}
-
-const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
 
@@ -16,11 +13,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const getPageTitle = () => {
     const path = location.pathname;
     
-    if (path === '/student-dashboard') return 'Student Dashboard';
-    if (path === '/teacher-dashboard') return 'Teacher Dashboard';
-    if (path === '/admin-dashboard') return 'Admin Dashboard';
-    if (path === '/superadmin-dashboard') return 'Superadmin Dashboard';
-    if (path === '/dashboard') return 'Dashboard';
+    if (path === '/') return 'Admin Dashboard';
     if (path === '/users') return 'User Management';
     if (path === '/classroom') return 'Classroom Management';
     if (path === '/courses') return 'Courses';
@@ -37,11 +30,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const getPageSubtitle = () => {
     const path = location.pathname;
     
-    if (path === '/student-dashboard') return 'Welcome to your personal learning space';
-    if (path === '/teacher-dashboard') return 'Manage your classes and students';
-    if (path === '/admin-dashboard') return 'Welcome back, Admin';
-    if (path === '/superadmin-dashboard') return 'System overview and management';
-    if (path === '/dashboard') return 'Welcome back, Admin';
+    if (path === '/') return 'Welcome back, Admin';
     if (path === '/users') return 'Manage teachers and students';
     if (path === '/classroom') return 'Create and manage classrooms';
     if (path === '/courses') return 'Discover and enroll in a wide range of educational content';
@@ -84,7 +73,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         />
         
         <main className="flex-1 overflow-y-auto p-6 bg-gray-50">
-          {children}
+          <Outlet />
         </main>
       </div>
     </div>

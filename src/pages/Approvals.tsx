@@ -1,169 +1,189 @@
-
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Download, FileText, Check, X, Eye } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-
-// Mock data for approvals
-const mockApprovals = [
-  {
-    id: 1,
-    title: 'Mathematics - Algebra Fundamentals',
-    author: 'Jane Smith',
-    subject: 'Mathematics',
-    grade: '9th Grade',
-    submittedDate: '2023-06-10',
-    status: 'pending',
-    description: 'Comprehensive guide to algebraic expressions, equations, and functions.',
-  },
-  {
-    id: 2,
-    title: 'Biology - Cell Structure and Function',
-    author: 'John Doe',
-    subject: 'Biology',
-    grade: '10th Grade',
-    submittedDate: '2023-06-08',
-    status: 'pending',
-    description: 'Interactive lessons on cell biology, organelles, and cellular processes.',
-  },
-  {
-    id: 3,
-    title: 'English Literature - Shakespeare Analysis',
-    author: 'Robert Johnson',
-    subject: 'English',
-    grade: '11th Grade',
-    submittedDate: '2023-06-07',
-    status: 'pending',
-    description: 'Critical analysis of Shakespeare\'s major works with historical context.',
-  },
-  {
-    id: 4,
-    title: 'History - World War II Timeline',
-    author: 'Maria Garcia',
-    subject: 'History',
-    grade: '12th Grade',
-    submittedDate: '2023-06-05',
-    status: 'pending',
-    description: 'Comprehensive timeline of World War II events with primary sources.',
-  },
-];
+import React, { useState, useEffect } from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { StudyMaterial } from '@/types';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { MoreVertical, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { Badge } from "@/components/ui/badge"
+import { toast } from "@/hooks/use-toast"
 
 const Approvals = () => {
-  const [approvals, setApprovals] = useState(mockApprovals);
-  const [selectedApproval, setSelectedApproval] = useState<number | null>(null);
+  const [approvals, setApprovals] = useState<StudyMaterial[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const handleApprove = (id: number) => {
-    setApprovals((prev) =>
-      prev.map((approval) =>
-        approval.id === id ? { ...approval, status: 'approved' } : approval
-      )
-    );
+  useEffect(() => {
+    // Mock data for study materials
+    const mockStudyMaterials: StudyMaterial[] = [
+      {
+        id: '1',
+        title: 'Introduction to Algebra',
+        type: 'Mathematics',
+        subject: 'Algebra',
+        grade: '9',
+        submittedBy: 'John Doe',
+        submittedOn: '2023-10-01',
+        status: 'Pending',
+      },
+      {
+        id: '2',
+        title: 'Organic Chemistry Basics',
+        type: 'Chemistry',
+        subject: 'Chemistry',
+        grade: '10',
+        submittedBy: 'Jane Smith',
+        submittedOn: '2023-09-25',
+        status: 'Pending',
+      },
+      {
+        id: '3',
+        title: 'Advanced Algorithms',
+        type: 'Computer Science',
+        subject: 'Algorithms',
+        grade: '11',
+        submittedBy: 'Alice Johnson',
+        submittedOn: '2023-09-20',
+        status: 'Pending',
+      },
+      {
+        id: '4',
+        title: 'The Great Gatsby Analysis',
+        type: 'Literature',
+        subject: 'English',
+        grade: '12',
+        submittedBy: 'Bob Williams',
+        submittedOn: '2023-09-15',
+        status: 'Pending',
+      },
+      {
+        id: '5',
+        title: 'Quantum Physics',
+        type: 'Physics',
+        subject: 'Physics',
+        grade: '12',
+        submittedBy: 'Charlie Brown',
+        submittedOn: '2023-09-10',
+        status: 'Pending',
+      },
+    ];
+
+    setApprovals(mockStudyMaterials);
+  }, []);
+
+  const handleApprove = (id: string) => {
+    setApprovals(approvals.map(item =>
+      item.id === id ? { ...item, status: 'Approved' } : item
+    ));
     toast({
-      title: "Content Approved",
-      description: "The content has been approved and is now available to students.",
-      variant: "default",
-    });
+      title: "Study Material Approved",
+      description: "The study material has been approved successfully.",
+    })
   };
 
-  const handleReject = (id: number) => {
-    setApprovals((prev) =>
-      prev.map((approval) =>
-        approval.id === id ? { ...approval, status: 'rejected' } : approval
-      )
-    );
+  const handleReject = (id: string) => {
+    setApprovals(approvals.map(item =>
+      item.id === id ? { ...item, status: 'Rejected' } : item
+    ));
     toast({
-      title: "Content Rejected",
-      description: "The content has been rejected and the author has been notified.",
-      variant: "destructive",
-    });
+      title: "Study Material Rejected",
+      description: "The study material has been rejected.",
+    })
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return <Badge className="bg-green-500">Approved</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive">Rejected</Badge>;
-      default:
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">Pending</Badge>;
-    }
-  };
+  const filteredApprovals = approvals.filter(approval =>
+    approval.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold tracking-tight">Content Approvals</h2>
-        <Button variant="outline" className="gap-2">
-          <Download className="h-4 w-4" />
-          Export Report
-        </Button>
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold">Study Material Approvals</h1>
+        <Input
+          type="search"
+          placeholder="Search by title..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </div>
-
-      <div className="grid grid-cols-1 gap-6">
-        {approvals.map((approval) => (
-          <Card key={approval.id} className="overflow-hidden">
-            <CardHeader className="p-6">
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-xl">{approval.title}</CardTitle>
-                  <CardDescription className="mt-1">
-                    Submitted by {approval.author} on {new Date(approval.submittedDate).toLocaleDateString()}
-                  </CardDescription>
-                </div>
-                {getStatusBadge(approval.status)}
-              </div>
-            </CardHeader>
-            <CardContent className="px-6 pb-0">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Subject</p>
-                  <p>{approval.subject}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Grade Level</p>
-                  <p>{approval.grade}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Status</p>
-                  <p className="capitalize">{approval.status}</p>
-                </div>
-              </div>
-              <p className="text-gray-600 mb-4">{approval.description}</p>
-            </CardContent>
-            <CardFooter className="bg-gray-50 p-6 flex justify-between">
-              <Button variant="outline" className="gap-2" onClick={() => setSelectedApproval(approval.id)}>
-                <Eye className="h-4 w-4" />
-                Preview
-              </Button>
-              {approval.status === 'pending' && (
-                <div className="flex gap-2">
-                  <Button variant="outline" className="gap-2 text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleReject(approval.id)}>
-                    <X className="h-4 w-4" />
-                    Reject
-                  </Button>
-                  <Button className="gap-2 bg-green-500 hover:bg-green-600" onClick={() => handleApprove(approval.id)}>
-                    <Check className="h-4 w-4" />
-                    Approve
-                  </Button>
-                </div>
-              )}
-            </CardFooter>
-          </Card>
-        ))}
-
-        {approvals.length === 0 && (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center p-12">
-              <FileText className="h-12 w-12 text-gray-300 mb-4" />
-              <h3 className="text-lg font-medium">No Pending Approvals</h3>
-              <p className="text-muted-foreground text-center mt-2">
-                All submitted content has been reviewed. Check back later for new submissions.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Subject</TableHead>
+              <TableHead>Grade</TableHead>
+              <TableHead>Submitted By</TableHead>
+              <TableHead>Submitted On</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredApprovals.map((item) => (
+              <TableRow key={item.id}>
+                <TableCell>{item.title}</TableCell>
+                <TableCell>{item.type}</TableCell>
+                <TableCell>{item.subject}</TableCell>
+                <TableCell>{item.grade}</TableCell>
+                <TableCell>{item.submittedBy}</TableCell>
+                <TableCell>{item.submittedOn}</TableCell>
+                <TableCell>
+                  {item.status === 'Pending' && (
+                    <Badge variant="secondary">Pending</Badge>
+                  )}
+                  {item.status === 'Approved' && (
+                    <Badge variant="success">Approved</Badge>
+                  )}
+                  {item.status === 'Rejected' && (
+                    <Badge variant="destructive">Rejected</Badge>
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem
+                        onClick={() => handleApprove(item.id)}
+                      >
+                        <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleReject(item.id)}
+                      >
+                        <XCircle className="mr-2 h-4 w-4" /> Reject
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem>
+                        <FileText className="mr-2 h-4 w-4" /> View Details
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
