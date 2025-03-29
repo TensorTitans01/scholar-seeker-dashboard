@@ -7,17 +7,19 @@ interface ClassSectionSelectProps {
   onChange: (value: string) => void;
   sections?: string[];
   placeholder?: string;
+  className?: string;
 }
 
 const ClassSectionSelect: React.FC<ClassSectionSelectProps> = ({ 
   value, 
   onChange, 
   sections = ['A', 'B', 'C', 'D'],
-  placeholder = "Select Section" 
+  placeholder = "Select Section",
+  className
 }) => {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="w-[180px]">
+      <SelectTrigger className={className || "w-[180px]"}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>

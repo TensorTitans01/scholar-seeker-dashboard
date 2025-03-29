@@ -43,16 +43,25 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import ClassGradeSelect from '@/components/shared/ClassGradeSelect';
+import ClassSectionSelect from '@/components/shared/ClassSectionSelect';
 import { courses, students, studentProgressData } from '@/data/mockData';
-import { Search, Filter, Plus, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
+import { Search, Filter, Plus, CheckCircle, XCircle, ArrowLeft, FileText, Download, ChevronDown } from 'lucide-react';
 import { Course } from '@/types';
 
 const Courses = () => {
   const [selectedGrade, setSelectedGrade] = useState<string>('all');
+  const [selectedSection, setSelectedSection] = useState<string>('all');
   const [activeTab, setActiveTab] = useState('all');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
+  const [isCurriculumOpen, setIsCurriculumOpen] = useState(false);
   const [newCourse, setNewCourse] = useState({
     title: '',
     description: '',
@@ -89,10 +98,36 @@ const Courses = () => {
     // We would add the course to the courses array in a real application
   };
 
+  const downloadStudentList = (course: Course, completed: boolean) => {
+    // In a real app, this would generate a CSV file with student data
+    // Here we're just showing an example of how it would work
+    const courseStudents = getStudentsForCourse(course);
+    const filteredStudents = completed 
+      ? courseStudents.filter(s => s.completed) 
+      : courseStudents.filter(s => !s.completed);
+    
+    const status = completed ? 'completed' : 'pending';
+    alert(`Downloaded ${filteredStudents.length} students ${status} for ${course.title}`);
+    
+    // In a real implementation, we would use something like:
+    // const csvContent = "data:text/csv;charset=utf-8," + filteredStudents.map(s => s.name + ',' + s.section).join('\n');
+    // const encodedUri = encodeURI(csvContent);
+    // const link = document.createElement("a");
+    // link.setAttribute("href", encodedUri);
+    // link.setAttribute("download", `${course.title}_${status}_students.csv`);
+    // document.body.appendChild(link);
+    // link.click();
+  };
+
   // Filter students for the selected course based on their class
   const getStudentsForCourse = (course: Course) => {
     // Get all students in the class matching the course grade
-    const classStudents = students.filter(student => student.class === course.grade);
+    let classStudents = students.filter(student => student.class === course.grade);
+    
+    // Apply section filter if a specific section is selected
+    if (selectedSection !== 'all') {
+      classStudents = classStudents.filter(student => student.section === selectedSection);
+    }
     
     return classStudents.map(student => {
       // Find progress data for this student and course
@@ -109,8 +144,46 @@ const Courses = () => {
     });
   };
 
+  // Sample curriculum data for demonstration
+  const curriculumData = {
+    "1": [
+      { 
+        subject: "Mathematics", 
+        units: [
+          { name: "Numbers and counting", weeks: 6, topics: ["Counting to 10", "Number recognition", "Basic addition"] },
+          { name: "Shapes and patterns", weeks: 4, topics: ["Basic shapes", "Pattern recognition", "Size comparison"] }
+        ]
+      },
+      { 
+        subject: "Science", 
+        units: [
+          { name: "Plants and animals", weeks: 5, topics: ["Living things", "Plant parts", "Animal homes"] },
+          { name: "Weather", weeks: 3, topics: ["Seasons", "Weather conditions", "Weather clothes"] }
+        ]
+      }
+    ],
+    "2": [
+      { 
+        subject: "Mathematics", 
+        units: [
+          { name: "Addition and Subtraction", weeks: 6, topics: ["Adding two-digit numbers", "Subtraction with borrowing", "Word problems"] },
+          { name: "Measurement", weeks: 4, topics: ["Length", "Weight", "Capacity"] }
+        ]
+      },
+      { 
+        subject: "Science", 
+        units: [
+          { name: "Life cycles", weeks: 5, topics: ["Plant life cycles", "Animal life cycles", "Habitats"] },
+          { name: "Materials", weeks: 4, topics: ["Properties of materials", "Uses of materials", "Changing materials"] }
+        ]
+      }
+    ]
+  };
+
   if (selectedCourse) {
     const courseStudents = getStudentsForCourse(selectedCourse);
+    const completedStudents = courseStudents.filter(s => s.completed);
+    const pendingStudents = courseStudents.filter(s => !s.completed);
     
     return (
       <div className="space-y-6">
@@ -168,60 +241,167 @@ const Courses = () => {
           
           <Card className="flex-1">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Student Progress</CardTitle>
-              <div className="flex items-center gap-2 text-sm">
-                <Badge variant="outline" className="bg-green-50 text-green-700">
-                  <CheckCircle className="w-3.5 h-3.5 mr-1" />
-                  {courseStudents.filter(s => s.completed).length} Completed
-                </Badge>
-                <Badge variant="outline" className="bg-amber-50 text-amber-700">
-                  <XCircle className="w-3.5 h-3.5 mr-1" />
-                  {courseStudents.filter(s => !s.completed).length} Pending
-                </Badge>
+              <div>
+                <CardTitle>Student Progress</CardTitle>
+                <CardDescription className="mt-1">
+                  Filter students by section
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-3">
+                <ClassSectionSelect 
+                  value={selectedSection} 
+                  onChange={setSelectedSection}
+                  className="w-[150px]"
+                />
+                <div className="flex items-center gap-2 text-sm">
+                  <Badge variant="outline" className="bg-green-50 text-green-700">
+                    <CheckCircle className="w-3.5 h-3.5 mr-1" />
+                    {completedStudents.length} Completed
+                  </Badge>
+                  <Badge variant="outline" className="bg-amber-50 text-amber-700">
+                    <XCircle className="w-3.5 h-3.5 mr-1" />
+                    {pendingStudents.length} Pending
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Section</TableHead>
-                    <TableHead>Progress</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Grade</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {courseStudents.length > 0 ? (
-                    courseStudents.map((student) => (
-                      <TableRow key={student.id}>
-                        <TableCell className="font-medium">{student.name}</TableCell>
-                        <TableCell>{student.section}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Progress value={student.progress} className="h-2 w-24" />
-                            <span className="text-sm">{student.progress}%</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {student.completed ? (
-                            <Badge variant="outline" className="bg-green-50 text-green-700">Completed</Badge>
-                          ) : (
-                            <Badge variant="outline" className="bg-amber-50 text-amber-700">Pending</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>{student.grade || '-'}</TableCell>
+              <Tabs defaultValue="all">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="all">All Students</TabsTrigger>
+                  <TabsTrigger value="completed">Completed</TabsTrigger>
+                  <TabsTrigger value="pending">Pending</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="all">
+                  <div className="flex justify-end mb-2">
+                    <Button variant="outline" size="sm" onClick={() => downloadStudentList(selectedCourse, false)}>
+                      <Download className="w-4 h-4 mr-2" />
+                      Download List
+                    </Button>
+                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Section</TableHead>
+                        <TableHead>Progress</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Grade</TableHead>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
-                        No students found for this grade level.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {courseStudents.length > 0 ? (
+                        courseStudents.map((student) => (
+                          <TableRow key={student.id}>
+                            <TableCell className="font-medium">{student.name}</TableCell>
+                            <TableCell>{student.section}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Progress value={student.progress} className="h-2 w-24" />
+                                <span className="text-sm">{student.progress}%</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {student.completed ? (
+                                <Badge variant="outline" className="bg-green-50 text-green-700">Completed</Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-amber-50 text-amber-700">Pending</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell>{student.grade || '-'}</TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                            No students found for this grade level and section.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TabsContent>
+                
+                <TabsContent value="completed">
+                  <div className="flex justify-end mb-2">
+                    <Button variant="outline" size="sm" onClick={() => downloadStudentList(selectedCourse, true)}>
+                      <Download className="w-4 h-4 mr-2" />
+                      Download Completed List
+                    </Button>
+                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Section</TableHead>
+                        <TableHead>Grade</TableHead>
+                        <TableHead>Completion Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {completedStudents.length > 0 ? (
+                        completedStudents.map((student) => (
+                          <TableRow key={student.id}>
+                            <TableCell className="font-medium">{student.name}</TableCell>
+                            <TableCell>{student.section}</TableCell>
+                            <TableCell>{student.grade || '-'}</TableCell>
+                            <TableCell>Apr 15, 2023</TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center py-6 text-muted-foreground">
+                            No students have completed this course yet.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TabsContent>
+                
+                <TabsContent value="pending">
+                  <div className="flex justify-end mb-2">
+                    <Button variant="outline" size="sm" onClick={() => downloadStudentList(selectedCourse, false)}>
+                      <Download className="w-4 h-4 mr-2" />
+                      Download Pending List
+                    </Button>
+                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Section</TableHead>
+                        <TableHead>Progress</TableHead>
+                        <TableHead>Last Activity</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pendingStudents.length > 0 ? (
+                        pendingStudents.map((student) => (
+                          <TableRow key={student.id}>
+                            <TableCell className="font-medium">{student.name}</TableCell>
+                            <TableCell>{student.section}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Progress value={student.progress} className="h-2 w-24" />
+                                <span className="text-sm">{student.progress}%</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>2 days ago</TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center py-6 text-muted-foreground">
+                            All students have completed this course.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         </div>
@@ -235,13 +415,67 @@ const Courses = () => {
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Courses</h2>
           <p className="text-muted-foreground">
-            Discover and enroll in a wide range of educational content
+            Discover and manage courses for different grade levels
           </p>
         </div>
         <div className="flex gap-2">
-          <Button>
-            <span>View Curriculum</span>
-          </Button>
+          <Dialog open={isCurriculumOpen} onOpenChange={setIsCurriculumOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <FileText className="h-4 w-4 mr-2" />
+                View Curriculum
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Curriculum for Grade {selectedGrade === 'all' ? 'All' : selectedGrade}</DialogTitle>
+                <DialogDescription>
+                  Syllabus and learning outcomes for each subject
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <Label htmlFor="currGrade">Select Grade:</Label>
+                  <ClassGradeSelect 
+                    value={selectedGrade} 
+                    onChange={setSelectedGrade} 
+                  />
+                </div>
+                
+                {selectedGrade !== 'all' && curriculumData[selectedGrade] ? (
+                  <div className="space-y-4">
+                    {curriculumData[selectedGrade].map((subjectData, idx) => (
+                      <Collapsible key={idx} className="border rounded-md">
+                        <CollapsibleTrigger className="flex w-full items-center justify-between p-4 font-medium">
+                          <span>{subjectData.subject}</span>
+                          <ChevronDown className="h-4 w-4" />
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="px-4 pb-4">
+                          {subjectData.units.map((unit, unitIdx) => (
+                            <div key={unitIdx} className="mb-4 last:mb-0">
+                              <h4 className="text-md font-medium">{unit.name} ({unit.weeks} weeks)</h4>
+                              <ul className="mt-2 pl-5 list-disc text-sm text-muted-foreground">
+                                {unit.topics.map((topic, topicIdx) => (
+                                  <li key={topicIdx}>{topic}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </CollapsibleContent>
+                      </Collapsible>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    {selectedGrade === 'all' 
+                      ? "Please select a specific grade to view its curriculum." 
+                      : `No curriculum data available for Grade ${selectedGrade}.`}
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+          
           <Dialog open={isAddCourseOpen} onOpenChange={setIsAddCourseOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -440,7 +674,7 @@ const Courses = () => {
                   </div>
                   <div className="mt-3">
                     <div className="flex justify-between text-sm mb-1">
-                      <span>Progress</span>
+                      <span>Overall Progress</span>
                       <span>{course.progress}%</span>
                     </div>
                     <Progress value={course.progress} className="h-2" />
@@ -452,12 +686,13 @@ const Courses = () => {
                 <CardFooter className="p-4 pt-0">
                   <Button 
                     className="w-full" 
-                    variant={course.progress > 0 ? "default" : "outline"}
+                    variant="outline"
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent card click from triggering
+                      handleCourseClick(course);
                     }}
                   >
-                    {course.progress > 0 ? "Continue Learning" : "Enroll Now"}
+                    View Course Details
                   </Button>
                 </CardFooter>
               </Card>
