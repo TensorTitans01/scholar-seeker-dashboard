@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { 
   Card, 
   CardContent, 
   CardDescription, 
-  CardFooter, A
+  CardFooter, 
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
